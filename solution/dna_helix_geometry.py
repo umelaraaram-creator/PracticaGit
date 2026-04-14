@@ -1,0 +1,83 @@
+"""
+Computes the 3D positions of the two helices and their connecting lines (base pairs).
+"""
+import numpy as np
+
+# B-form DNA geometry parameters (units in nm):
+#   bases_per_turn : bases per full turn (~10.5 in real DNA)
+#   z_step         : vertical rise per base = 0.34 nm
+#   radius         : helix radius = 1.0 nm
+#   angle_step     : rotation per base = 34.3° ≈ 0.6 rad
+DNA_CONFIG = {
+    'bases_per_turn': 10.5,   # can be float (~10.5 for real B-form DNA)
+    'z_step': 0.34,           # nm per base
+    'radius': 1.0,            # nm
+    'angle_step': 0.6,        # radians per base (~34.3°)
+    'strand_offset': 2 * np.pi / 3,  # 120° between strands
+    'smooth_per_base': 10,    # curve samples per base (strand smoothness)
+}
+
+class DNAHelixGeometry:
+    def __init__(self, n_bases, config=None):
+        if config is None:
+            config = DNA_CONFIG
+        self.config = {
+            'bases_per_turn': config['bases_per_turn'],
+            'z_step': config['z_step'],
+            'radius': config['radius'],
+            'angle_step': config['angle_step'],
+            'strand_offset': config.get('strand_offset', np.pi),
+            'smooth_per_base': config.get('smooth_per_base', 10),
+        }
+        self.n_bases = int(n_bases)
+        if self.n_bases <= 0:
+            raise ValueError("n_bases must be a positive integer.")
+        self.n_turns = self.n_bases / self.config['bases_per_turn']
+        self.helix1 = []
+        self.helix2 = []
+        self.base_pairs = []
+        self.calculate_geometry()
+
+    def calculate_geometry(self):
+        self._calculate_strands()
+        self._calculate_base_pairs()
+
+    def _calculate_strands(self):
+        total_angle = self.n_bases * self.config['angle_step']
+        total_z = self.n_bases * self.config['z_step']
+
+        # Strands: fine sampling independent of the number of bases
+        n_smooth = self.n_bases * self.config['smooth_per_base']
+        theta_smooth = np.linspace(0, total_angle, n_smooth)
+        z_smooth = np.linspace(0, total_z, n_smooth)
+        x1 = self.config['radius'] * np.cos(theta_smooth)
+        y1 = self.config['radius'] * np.sin(theta_smooth)
+        x2 = self.config['radius'] * np.cos(theta_smooth + self.config['strand_offset'])
+        y2 = self.config['radius'] * np.sin(theta_smooth + self.config['strand_offset'])
+        self.helix1 = list(zip(x1, y1, z_smooth))
+        self.helix2 = list(zip(x2, y2, z_smooth))
+
+    def _calculate_base_pairs(self):
+        total_angle = self.n_bases * self.config['angle_step']
+
+        axis_crossing_phase_shift = np.pi - self.config['strand_offset']
+        if self.n_bases == 1:
+            theta_center = np.array([total_angle / 2])
+        else:
+            theta_center = np.linspace(
+                axis_crossing_phase_shift / 2,
+                total_angle - axis_crossing_phase_shift / 2,
+                self.n_bases,
+            )
+
+        theta1 = theta_center - axis_crossing_phase_shift / 2
+        theta2 = theta_center + axis_crossing_phase_shift / 2
+        z1_bases = theta1 * self.config['z_step'] / self.config['angle_step']
+        z2_bases = theta2 * self.config['z_step'] / self.config['angle_step']
+        bp1 = list(zip(self.config['radius'] * np.cos(theta1),
+                       self.config['radius'] * np.sin(theta1),
+                       z1_bases))
+        bp2 = list(zip(self.config['radius'] * np.cos(theta2 + self.config['strand_offset']),
+                       self.config['radius'] * np.sin(theta2 + self.config['strand_offset']),
+                       z2_bases))
+        self.base_pairs = list(zip(bp1, bp2))
