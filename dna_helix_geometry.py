@@ -10,7 +10,7 @@ DNA_CONFIG = {
 }
 
 class DNAHelixGeometry:
-    def _init_(self, n_bases, config=None):
+    def __init__(self, n_bases, config=None):
         if config is None:
             config = DNA_CONFIG
         self.config = {
@@ -29,3 +29,20 @@ class DNAHelixGeometry:
         self.helix2 = []
         self.base_pairs = []
         self.calculate_geometry()
+
+def _calculate_strands(self):
+        total_angle = self.n_bases * self.config['angle_step']
+        total_z = self.n_bases * self.config['z_step']
+        n_smooth = self.n_bases * self.config['smooth_per_base']
+        
+        theta_smooth = np.linspace(0, total_angle, n_smooth)
+        z_smooth = np.linspace(0, total_z, n_smooth)
+        
+        x1 = self.config['radius'] * np.cos(theta_smooth)
+        y1 = self.config['radius'] * np.sin(theta_smooth)
+        
+        x2 = self.config['radius'] * np.cos(theta_smooth + self.config['strand_offset'])
+        y2 = self.config['radius'] * np.sin(theta_smooth + self.config['strand_offset'])
+        
+        self.helix1 = list(zip(x1, y1, z_smooth))
+        self.helix2 = list(zip(x2, y2, z_smooth))
