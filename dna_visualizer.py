@@ -66,7 +66,14 @@ class DNAVisualizer:
         ax.zaxis.pane.set_edgecolor('none')
 
     def _add_legend(self, ax):
-        pass
+        helix_handles, helix_labels = ax.get_legend_handles_labels()
+        base_handles = [
+            Patch(facecolor=self.base_colors['A'], edgecolor='none', label='A'),
+            Patch(facecolor=self.base_colors['T'], edgecolor='none', label='T'),
+            Patch(facecolor=self.base_colors['C'], edgecolor='none', label='C'),
+            Patch(facecolor=self.base_colors['G'], edgecolor='none', label='G'),
+        ]
+        ax.legend(helix_handles + base_handles, helix_labels + ['A', 'T', 'C', 'G'])
 
     def plot(self):
         _, ax = self._create_3d_axes()
