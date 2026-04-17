@@ -30,51 +30,46 @@ class DNAHelixGeometry:
         self.base_pairs = []
         self.calculate_geometry()
 
-def _calculate_strands(self):
+    def calculate_geometry(self):
+        self._calculate_strands()
+        self._calculate_base_pairs()
+
+    def _calculate_strands(self):
         total_angle = self.n_bases * self.config['angle_step']
         total_z = self.n_bases * self.config['z_step']
         n_smooth = self.n_bases * self.config['smooth_per_base']
-        
         theta_smooth = np.linspace(0, total_angle, n_smooth)
         z_smooth = np.linspace(0, total_z, n_smooth)
-        
         x1 = self.config['radius'] * np.cos(theta_smooth)
         y1 = self.config['radius'] * np.sin(theta_smooth)
-        
         x2 = self.config['radius'] * np.cos(theta_smooth + self.config['strand_offset'])
         y2 = self.config['radius'] * np.sin(theta_smooth + self.config['strand_offset'])
-        
         self.helix1 = list(zip(x1, y1, z_smooth))
         self.helix2 = list(zip(x2, y2, z_smooth))
-def _calculate_base_pairs(self):
+
+    def _calculate_base_pairs(self):
         total_angle = self.n_bases * self.config['angle_step']
         axis_crossing_phase_shift = np.pi - self.config['strand_offset']
-        
         if self.n_bases == 1:
             theta_center = np.array([total_angle / 2])
         else:
             theta_center = np.linspace(
                 axis_crossing_phase_shift / 2,
                 total_angle - axis_crossing_phase_shift / 2,
-                self.n_bases
+                self.n_bases,
             )
-            
         theta1 = theta_center - axis_crossing_phase_shift / 2
         theta2 = theta_center + axis_crossing_phase_shift / 2
-        
         z1_bases = theta1 * self.config['z_step'] / self.config['angle_step']
         z2_bases = theta2 * self.config['z_step'] / self.config['angle_step']
-        
         bp1 = list(zip(
             self.config['radius'] * np.cos(theta1),
             self.config['radius'] * np.sin(theta1),
             z1_bases,
         ))
-        
         bp2 = list(zip(
             self.config['radius'] * np.cos(theta2 + self.config['strand_offset']),
             self.config['radius'] * np.sin(theta2 + self.config['strand_offset']),
             z2_bases,
         ))
-        
         self.base_pairs = list(zip(bp1, bp2))
