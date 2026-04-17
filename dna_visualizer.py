@@ -52,7 +52,18 @@ class DNAVisualizer:
             ax.scatter([mid_x], [mid_y], [mid_z], color=color, s=20)
 
     def _configure_axes(self, ax):
-        pass
+        ax.set_xlabel('X (nm)')
+        ax.set_ylabel('Y (nm)')
+        ax.set_zlabel('Z (nm)')
+        ax.set_title('DNA Double Helix (3D) - Real Dimensions')
+        ax.view_init(elev=20, azim=45)
+        ax.grid(False)
+        ax.xaxis.pane.fill = False
+        ax.yaxis.pane.fill = False
+        ax.zaxis.pane.fill = False
+        ax.xaxis.pane.set_edgecolor('none')
+        ax.yaxis.pane.set_edgecolor('none')
+        ax.zaxis.pane.set_edgecolor('none')
 
     def _add_legend(self, ax):
         pass
